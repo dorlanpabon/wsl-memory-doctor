@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# Packaging
+build/
+dist/
+*.egg-info/
+
+# Local runtime artifacts
+data/*.sqlite3
+reports/latest.json
+reports/latest.md
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

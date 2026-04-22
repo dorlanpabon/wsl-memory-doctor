@@ -1,0 +1,31 @@
+[profile.balanceado]
+recommended_memory_gb = 12
+recommended_processors = 8
+recommended_swap_gb = 4
+auto_memory_reclaim = "gradual"
+max_top_processes = 12
+container_margin_multiplier = 2.5
+min_container_limit_mib = 256
+max_container_limit_mib = 2048
+high_vmmem_host_ratio = 0.20
+high_vmmem_min_gb = 6
+high_cache_ratio = 0.20
+high_available_ratio = 0.40
+possible_leak_growth_ratio = 0.25
+possible_leak_stability_tolerance = 0.15
+
+[reviews]
+service_names = [
+  "snapd.service",
+  "cloud-init.service",
+  "cloud-final.service",
+  "cloud-config.service",
+  "ModemManager.service",
+  "dbus-org.freedesktop.ModemManager1.service",
+]
+warning_patterns = [
+  "Failed to mount",
+  "Failed to translate",
+  "bogus",
+  "screen size",
+]
