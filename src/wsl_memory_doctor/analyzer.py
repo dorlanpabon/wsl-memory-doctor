@@ -95,8 +95,9 @@ def analyze_snapshot(
             )
         )
 
+    desired_auto_reclaim = str(profile["auto_memory_reclaim"]).strip().lower()
     auto_reclaim = str(experimental_cfg.get("autoMemoryReclaim", "")).strip()
-    if not auto_reclaim or auto_reclaim.lower() == "disabled":
+    if auto_reclaim and auto_reclaim.lower() == "disabled":
         findings.append(
             _finding(
                 "missing_auto_memory_reclaim",
@@ -104,6 +105,15 @@ def analyze_snapshot(
                 "WSL sin `autoMemoryReclaim` efectivo",
                 "WSL puede retener caché en memoria aunque la carga real ya haya bajado.",
             )
+        )
+
+    if auto_reclaim and auto_reclaim.lower() not in {desired_auto_reclaim, "disabled"}:
+        recommendations["reconfigurar"].append(
+            {
+                "title": "Alinear `autoMemoryReclaim` al perfil actual",
+                "command": "wsl --shutdown",
+                "detail": f"El perfil actual recomienda `autoMemoryReclaim={profile['auto_memory_reclaim']}` para priorizar memoria sobre cachÃ© retenida.",
+            }
         )
 
     if unlimited_containers:

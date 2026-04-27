@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 
-from wsl_memory_doctor.parsers import parse_container_stats, parse_meminfo, parse_wsl_list
+from wsl_memory_doctor.parsers import parse_container_stats, parse_meminfo, parse_relaxed_wslconfig, parse_wsl_list
 
 
 class ParserTests(unittest.TestCase):
@@ -35,6 +35,23 @@ class ParserTests(unittest.TestCase):
         parsed = parse_container_stats(raw)
         self.assertEqual(parsed["localstack-main"]["memory_usage_bytes"], 432373760)
         self.assertEqual(parsed["localstack-main"]["memory_limit_bytes"], 16724983808)
+
+    def test_parse_relaxed_wslconfig(self) -> None:
+        raw = (
+            "[wsl2]\n"
+            "memory=8GB\n"
+            "processors=8\n"
+            "swap=4GB\n"
+            "automount=true\n"
+            "\n"
+            "[experimental]\n"
+            "autoMemoryReclaim=dropCache\n"
+        )
+        parsed = parse_relaxed_wslconfig(raw)
+        self.assertEqual(parsed["wsl2"]["memory"], "8GB")
+        self.assertEqual(parsed["wsl2"]["processors"], 8)
+        self.assertTrue(parsed["wsl2"]["automount"])
+        self.assertEqual(parsed["experimental"]["autoMemoryReclaim"], "dropCache")
 
 
 if __name__ == "__main__":

@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import tomllib
+from tomllib import TOMLDecodeError
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -14,6 +15,7 @@ from .parsers import (
     parse_json_document,
     parse_meminfo,
     parse_process_table,
+    parse_relaxed_wslconfig,
     parse_service_list,
     strip_control_chars,
     parse_wsl_list,
@@ -68,8 +70,12 @@ def collect_host(settings: dict[str, Any], warnings: list[str]) -> dict[str, Any
     wslconfig: dict[str, Any] = {}
     if wslconfig_path.exists():
         wslconfig_raw = wslconfig_path.read_text(encoding="utf-8", errors="replace")
-        with wslconfig_path.open("rb") as handle:
-            wslconfig = tomllib.load(handle)
+        try:
+            with wslconfig_path.open("rb") as handle:
+                wslconfig = tomllib.load(handle)
+        except TOMLDecodeError:
+            wslconfig = parse_relaxed_wslconfig(wslconfig_raw)
+            warnings.append("`.wslconfig` usa sintaxis flexible de WSL; se aplico parser tolerante para leerla.")
 
     docker_settings_path = Path(os.environ.get("APPDATA", "")) / "Docker" / "settings.json"
     docker_settings = {}

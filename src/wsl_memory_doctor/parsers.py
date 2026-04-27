@@ -74,6 +74,32 @@ def parse_meminfo(text: str) -> dict[str, int]:
     return info
 
 
+def parse_relaxed_wslconfig(text: str) -> dict[str, Any]:
+    config: dict[str, Any] = {}
+    current_section: dict[str, Any] | None = None
+
+    for raw_line in strip_control_chars(text).splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or line.startswith(";"):
+            continue
+        if line.startswith("[") and line.endswith("]"):
+            section_name = line[1:-1].strip()
+            current_section = config.setdefault(section_name, {})
+            continue
+        if "=" not in line:
+            continue
+
+        key, raw_value = line.split("=", 1)
+        key = key.strip()
+        value = _parse_relaxed_value(raw_value.strip())
+        if current_section is None:
+            config[key] = value
+        else:
+            current_section[key] = value
+
+    return config
+
+
 def parse_service_list(text: str) -> list[dict[str, str]]:
     services: list[dict[str, str]] = []
     for raw_line in strip_control_chars(text).splitlines():
@@ -179,3 +205,18 @@ def _to_float(value: Any) -> float:
         return float(str(value).replace("%", "").replace(",", ".").strip())
     except (TypeError, ValueError):
         return 0.0
+
+
+def _parse_relaxed_value(raw_value: str) -> Any:
+    lower = raw_value.lower()
+    if lower == "true":
+        return True
+    if lower == "false":
+        return False
+    if (raw_value.startswith('"') and raw_value.endswith('"')) or (raw_value.startswith("'") and raw_value.endswith("'")):
+        return raw_value[1:-1]
+    if re.fullmatch(r"[+-]?\d+", raw_value):
+        return int(raw_value)
+    if re.fullmatch(r"[+-]?\d+\.\d+", raw_value):
+        return float(raw_value)
+    return raw_value

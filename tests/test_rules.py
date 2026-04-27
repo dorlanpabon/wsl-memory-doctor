@@ -72,7 +72,6 @@ class AnalyzerTests(unittest.TestCase):
         self.assertIn("double_runtime", codes)
         self.assertIn("unlimited_containers", codes)
         self.assertIn("missing_wsl_limits", codes)
-        self.assertIn("missing_auto_memory_reclaim", codes)
         self.assertIn("wsl_warnings", codes)
         self.assertEqual(analysis["classification"], "sobrecarga por runtimes")
 
@@ -104,6 +103,13 @@ class AnalyzerTests(unittest.TestCase):
         snapshot["wsl"]["global_meminfo"]["SReclaimable"] = 64 * 1024**2
         analysis = analyze_snapshot(snapshot, history, self.settings)
         self.assertEqual(analysis["classification"], "posible fuga")
+
+    def test_disabled_auto_memory_reclaim_is_flagged(self) -> None:
+        snapshot = make_snapshot()
+        snapshot["host"]["wslconfig"]["experimental"]["autoMemoryReclaim"] = "disabled"
+        analysis = analyze_snapshot(snapshot, [], self.settings)
+        codes = {finding["code"] for finding in analysis["findings"]}
+        self.assertIn("missing_auto_memory_reclaim", codes)
 
 
 if __name__ == "__main__":

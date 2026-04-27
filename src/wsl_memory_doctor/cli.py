@@ -6,6 +6,7 @@ from pathlib import Path
 from .analyzer import analyze_snapshot
 from .collectors import collect_snapshot
 from .config import PROJECT_ROOT, load_settings
+from .maintenance import drop_wsl_cache, render_drop_cache_report
 from .reporting import render_console_summary, render_history, render_markdown, write_reports
 from .storage import load_latest_run, load_runs_since, save_run
 
@@ -38,6 +39,25 @@ def build_parser() -> argparse.ArgumentParser:
         description="Exporta el ultimo snapshot guardado.",
     )
     export_parser.add_argument("--format", choices=["json", "md"], default="md")
+
+    drop_cache_parser = subparsers.add_parser(
+        "drop-cache",
+        help="Vacia el page cache de WSL y mide antes/despues.",
+        description="Vacia el page cache de WSL y mide antes/despues.",
+    )
+    drop_cache_parser.add_argument("--distro", help="Distro objetivo. Si se omite, usa la distro principal no-sistema.")
+    drop_cache_parser.add_argument(
+        "--mode",
+        choices=["all", "pagecache", "dentries"],
+        default="all",
+        help="Tipo de cache a limpiar: all=1+2, pagecache=1, dentries=2.",
+    )
+    drop_cache_parser.add_argument(
+        "--wait-seconds",
+        type=float,
+        default=2.0,
+        help="Segundos a esperar antes de volver a medir.",
+    )
     return parser
 
 
@@ -74,6 +94,15 @@ def main(argv: list[str] | None = None) -> int:
             print((report_dir / "latest.json").read_text(encoding="utf-8"))
         else:
             print((report_dir / "latest.md").read_text(encoding="utf-8"))
+        return 0
+
+    if args.command == "drop-cache":
+        try:
+            result = drop_wsl_cache(args.distro, args.mode, args.wait_seconds)
+        except (RuntimeError, ValueError) as exc:
+            print(f"Error: {exc}")
+            return 1
+        print(render_drop_cache_report(result))
         return 0
 
     parser.print_help()

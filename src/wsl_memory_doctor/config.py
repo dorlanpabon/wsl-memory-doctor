@@ -12,10 +12,10 @@ PROJECT_ROOT = Path(os.environ.get("WSL_MEMORY_DOCTOR_ROOT", Path(__file__).reso
 DEFAULT_SETTINGS: dict[str, Any] = {
     "profile": {
         "balanceado": {
-            "recommended_memory_gb": 12,
+            "recommended_memory_gb": 8,
             "recommended_processors": 8,
             "recommended_swap_gb": 4,
-            "auto_memory_reclaim": "gradual",
+            "auto_memory_reclaim": "dropCache",
             "max_top_processes": 12,
             "container_margin_multiplier": 2.5,
             "min_container_limit_mib": 256,
